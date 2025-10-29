@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <!-- セーフエリア対応 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>アンケートフォーム</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    :root{
+      --brand:#a1449f; --brand-dark:#a1449f; --ink:#222; --muted:#666; --bg:#f7f7f7;
+      --panel:#fff; --border:#ccc; --shadow:0 0 10px rgba(0,0,0,.1);
+      --radius:12px; --gap:12px;
+      --fs-body:clamp(14px, 2.8vw, 16px);
+      --fs-title:clamp(20px, 5vw, 28px);
+      --fs-chip:clamp(14px, 3.4vw, 16px);
+      --fs-btn:clamp(14px, 3.4vw, 16px);
+    }
+
+    /* ===== レイアウト ===== */
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      padding-top:max(16px, env(safe-area-inset-top));
+      padding-bottom:max(16px, env(safe-area-inset-bottom));
+      background:var(--bg);
+      color:var(--ink);
+      font-family: Arial, "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      font-size:var(--fs-body);
+      line-height:1.6;
+      display:flex; justify-content:center; align-items:flex-start;
+      min-height:100svh; /* スマホのアドレスバー変動に強い */
+    }
+    .container{
+      width:min(100%, 720px);
+      margin:0 12px;
+      background:var(--panel);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:clamp(16px, 3.5vw, 24px);
+      box-sizing:border-box;
+    }
+
+    /* ===== サイドナビ（デスクトップ） ===== */
+    .side-nav{
+      position:fixed; right:8px; top:70%;
+      transform:translateY(-50%);
+      background:var(--brand);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      padding:6px; border-radius:12px; z-index:1000; width:40px;
+      box-shadow:0 4px 12px rgba(0,0,0,.12);
+    }
+    .side-nav a{
+      position:relative;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; text-decoration:none; border-radius:8px;
+      width:36px; height:36px; font-size:12px;
+      transition:transform .15s ease;
+    }
+    .side-nav a:active{ transform:scale(.98); }
+    .side-nav a span{ font-size:22px; position:absolute; left:0; top:10px; }
+
+    /* モバイルでは右下に再配置＆省スペース */
+    @media (max-width: 600px){
+      .side-nav{
+        top:auto; bottom:max(12px, env(safe-area-inset-bottom));
+        right:max(12px, env(safe-area-inset-right));
+        transform:none; width:auto; padding:6px 8px; border-radius:14px;
+      }
+      .side-nav a{ width:40px; height:40px; }
+      .side-nav a span{ display:none; } /* 矢印テキストは非表示 */
+    }
+
+    /* ===== 見出し ===== */
+    h1{
+      background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color:#fff; padding:18px clamp(12px, 3vw, 20px);
+      border-radius:14px;
+      text-align:center;
+      margin:0 0 16px 0;
+      font-size:var(--fs-title); font-weight:700;
+      box-shadow:inset 0 -5px 10px rgba(0,0,0,.05);
+    }
+
+    /* ===== 説明ブロック ===== */
+    .info-text{
+      margin:16px 0 20px; font-size:clamp(13px, 2.8vw, 15px);
+      background:#f8f9fa;
+      padding:clamp(12px, 3vw, 16px);
+      border-radius:10px;
+      border:1px solid #ced4da;
+      box-shadow:0 2px 4px rgba(0,0,0,.08);
+    }
+
+    /* ===== ラベル・入力 ===== */
+    .field{ margin:0 0 18px; }
+    .label-chip{
+      display:block; margin-bottom:10px; padding:8px 10px;
+      font-weight:700; background:var(--brand); color:#fff; border-radius:8px;
+      font-size:var(--fs-chip); text-align:center;
+    }
+    .text-input{
+      width:100%; padding:14px;
+      border:1px solid var(--border); border-radius:10px;
+      font-size:16px; /* iOSのズーム抑止 */
+      box-sizing:border-box; transition:box-shadow .2s, border-color .2s;
+      min-height:44px;
+    }
+    .text-input:focus{ border-color:var(--brand); outline:none; box-shadow:0 0 0 4px rgba(19,202,94,.15); }
+
+    .notice{ background:#f9f9d6; padding:12px; border-radius:12px; margin:10px 0 16px; }
+    .is-hidden{ display:none !important; }
+
+    /* ===== 選択肢ボタン群 ===== */
+    .btn-group{
+      display:flex; flex-wrap:wrap; gap:var(--gap);
+    }
+    .btn{
+      flex:1 1 calc(50% - var(--gap));
+      padding:12px; min-height:44px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff; color:#000;
+      font-size:var(--fs-btn);
+      cursor:pointer; transition:background .15s, transform .12s, box-shadow .15s;
+      text-align:center; white-space:nowrap;
+      box-shadow:0 1px 0 rgba(0,0,0,.03);
+      touch-action:manipulation;
+    }
+    .btn:hover{ background:#f3f4f6; }
+    .btn:active{ transform:scale(.99); }
+    .btn.is-active{
+      background:#444; color:#fff;
+      outline:2px solid #696969; outline-offset:2px;
+    }
+
+    /* 幅が狭い端末は1列 */
+    @media (max-width:480px){
+      .btn{ flex-basis:100%; }
+    }
+
+    /* ===== 送信ボタン ===== */
+    .submit-button{
+      width:100%; padding:16px; min-height:48px;
+      font-size:clamp(16px, 3.8vw, 18px);
+      border:none; border-radius:12px;
+      background:#a1449f; color:#fff; cursor:pointer;
+      transition:filter .15s ease;
+      position:relative;
+    }
+    .submit-button:hover{ filter:brightness(.95); }
+    .submit-button:active{ transform:translateY(1px); }
+
+    /* ユーザーが動きを抑制している場合 */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; }
+    }
+
+    /* ダークモード（任意） */
+    @media (prefers-color-scheme: dark){
+      :root{ --bg:#0f1115; --panel:#151923; --ink:#e8e8e8; --border:#2b3140; }
+      .container{ box-shadow:none; }
+      .info-text{ background:#1b2130; border-color:#2b3140; color:#dfe5ee; }
+      .btn{ background:#1c2230; color:#e8e8e8; border-color:#2b3140; }
+      .btn:hover{ background:#242b3b; }
+      .text-input{ background:#121622; color:#e8e8e8; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>スピリチュアルサロンWELINA<br>アンケートフォーム</h1>
+    <div class="info-text">
+      以下全て入力後【送信】ボタンを押してください。<br>
+      ※ご回答いただいた内容は配信にのみ利用させていただきます。
+    </div>
+
+    <div class="field">
+      <span class="label-chip">ご希望のセッション場所を教えて下さい</span>
+      <div id="priorityGroup" class="btn-group" role="group" aria-label="セッション場所">
+        <button type="button" class="btn" data-value="東京サロン" aria-pressed="false">東京サロン</button>
+        <button type="button" class="btn" data-value="岡山駅近辺のホテル" aria-pressed="false">岡山駅近辺のホテル</button>
+        <button type="button" class="btn" data-value="オンラインセッション" aria-pressed="false">オンラインセッション</button>
+        <button type="button" class="btn" data-value="その他" data-toggle="other" aria-pressed="false">その他</button>
+      </div>
+
+      <!-- その他入力（モバイルで指し示しやすい余白） -->
+      <div id="otherWrap" class="notice is-hidden">
+        <label for="priorityOther" style="font-weight:700; display:block; margin:0 0 6px;">その他の内容</label>
+        <input id="priorityOther" class="text-input" type="text" placeholder="例：名古屋駅付近のホテル希望" maxlength="100" inputmode="text" />
+      </div>
+    </div>
+
+    <button class="submit-button" id="section-message" type="button">送信</button>
+  </div>
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+  <script>
+    (() => {
+      const LIFF_ID = '2005254357-zKma9BZk';
+
+      // State
+      let selected = '';
+      const els = {
+        group: document.getElementById('priorityGroup'),
+        otherWrap: document.getElementById('otherWrap'),
+        otherInput: document.getElementById('priorityOther'),
+        submit: document.getElementById('section-message')
+      };
+
+      // --- LIFF init ---
+      document.addEventListener('DOMContentLoaded', () => {
+        liff.init({ liffId: LIFF_ID })
+          .then(() => console.log('LIFF初期化成功'))
+          .catch(err => console.error('LIFF初期化失敗', err));
+      });
+
+      // --- Choice handling (event delegation) ---
+      els.group.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+
+        // 見た目・aria更新
+        els.group.querySelectorAll('.btn').forEach(b => {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        selected = btn.dataset.value || '';
+
+        // その他の表示切替
+        const showOther = btn.dataset.toggle === 'other';
+        els.otherWrap.classList.toggle('is-hidden', !showOther);
+        els.otherInput.toggleAttribute('required', showOther);
+        if (showOther) {
+          requestAnimationFrame(() => els.otherInput.focus());
+        } else {
+          els.otherInput.value = '';
+        }
+      });
+
+      // Enterで送信（その他入力中）
+      els.otherInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSubmit();
+        }
+      });
+
+      // Submit
+      els.submit.addEventListener('click', handleSubmit);
+
+      function handleSubmit() {
+        const active = els.group.querySelector('.btn.is-active');
+        const isOther = active && active.dataset.toggle === 'other';
+        const otherText = (els.otherInput.value || '').trim();
+
+        if (!selected) {
+          alert('ご希望のセッション場所を教えて下さいをご選択ください。');
+          return;
+        }
+        if (isOther && !otherText) {
+          alert('「その他」を選んだ場合は、自由記入欄に内容をご入力ください。');
+          els.otherInput.focus();
+          return;
+        }
+
+        const priorityText = isOther ? `その他（${otherText}）` : selected;
+
+        liff.sendMessages([{
+          type: 'text',
+          text: `≪アンケート≫\n【セッション場所】\n・${priorityText}`
+        }]).then(() => {
+          alert('ご回答いただき、ありがとうございます。');
+          liff.closeWindow();
+        }).catch(err => {
+          console.error('メッセージの送信に失敗しました', err);
+          alert('送信に失敗しました。電波状況をご確認の上、再度お試しください。');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
